@@ -20,9 +20,9 @@ public class RobotContainer {
   public RobotContainer() {
     swerve.setDefaultCommand(
       new RunCommand(() -> {
-        double xSpeed = -MathUtil.applyDeadband(controll.getLeftY(), 0.05) * SwerveConstants.MAX_SPEED_METERS_PER_SECOND;
-        double ySpeed = -MathUtil.applyDeadband(controll.getLeftX(), 0.05) * SwerveConstants.MAX_SPEED_METERS_PER_SECOND;
-        double rotation = -MathUtil.applyDeadband(controll.getRightX(), 0.05) * SwerveConstants.MAX_ANGULAR_SPEED_RADIANS_PER_SECOND;
+        double xSpeed = -MathUtil.applyDeadband(controll.getLeftY(), 0.1) * SwerveConstants.MAX_SPEED_METERS_PER_SECOND;
+        double ySpeed = -MathUtil.applyDeadband(controll.getLeftX(), 0.1) * SwerveConstants.MAX_SPEED_METERS_PER_SECOND;
+        double rotation = -MathUtil.applyDeadband(controll.getRightX(), 0.1) * SwerveConstants.MAX_ANGULAR_SPEED_RADIANS_PER_SECOND;
 
         swerve.drive(xSpeed, ySpeed, rotation);
       }, swerve)

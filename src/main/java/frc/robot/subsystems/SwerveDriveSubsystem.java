@@ -39,7 +39,7 @@ public class SwerveDriveSubsystem extends SubsystemBase{
    public SwerveDriveSubsystem(){
         resetField();
         odometry = new SwerveDriveOdometry(
-            SwerveConstants.KINEMATICS, getRotation2d(), null);
+            SwerveConstants.KINEMATICS, getRotation2d(), getModulePositions());
     }
 
     public void resetField(){
@@ -120,7 +120,7 @@ public class SwerveDriveSubsystem extends SubsystemBase{
             c_turn.inverted(true)
                 .idleMode(IdleMode.kBrake)
                 .smartCurrentLimit(20); 
-            c_turn.encoder.positionConversionFactor(SwerveConstants.TURN_GEAR_RELATION);
+            c_turn.encoder.positionConversionFactor(SwerveConstants.TURN_POSITION_CONVERSION);
             c_turn.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                              .pid(0.5, 0, 0)
                              .positionWrappingEnabled(true)
