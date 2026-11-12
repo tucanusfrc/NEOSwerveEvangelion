@@ -30,11 +30,11 @@ public class SwerveDriveSubsystem extends SubsystemBase{
     private final SwerveModule frontRightModule = new SwerveModule(
     SwerveConstants.FR_SPEED_ID, SwerveConstants.FR_TURN_ID, SwerveConstants.FR_TURN_ID, true);
 
-    private final SwerveModule backRightModule = new SwerveModule(
+    private final SwerveModule backLeftModule = new SwerveModule(
     SwerveConstants.BR_SPEED_ID, SwerveConstants.BR_TURN_ID, SwerveConstants.BR_TURN_ID, true);
 
-    private final SwerveModule backLeftModule = new SwerveModule(
-    SwerveConstants.BL_SPEED_ID, SwerveConstants.BL_TURN_ID, SwerveConstants.BL_TURN_ID, true);
+    private final SwerveModule backRightModule = new SwerveModule(
+    SwerveConstants.BL_SPEED_ID, SwerveConstants.BL_TURN_ID, SwerveConstants.BL_TURN_ID, false);
 
     public final Pigeon2 gyro = new Pigeon2(SwerveConstants.PIGEON2_ID);
     public final SwerveDriveOdometry odometry;
@@ -130,9 +130,6 @@ public class SwerveDriveSubsystem extends SubsystemBase{
                              .positionWrappingInputRange(-Math.PI, Math.PI); // tentar mudar para rotação depois.
                              
             m_turn.configure(c_turn, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-            resetToAbsolute();
-
         }
 
         public void resetToAbsolute() {
@@ -155,7 +152,7 @@ public class SwerveDriveSubsystem extends SubsystemBase{
             desiredState.optimize(currentRotation);
             desiredState.cosineScale(currentRotation);
 
-            speedController.setSetpoint(desiredState.speedMetersPerSecond, ControlType.kVelocity);
+            speedController.setSetpoint(desiredState.speedMetersPerSecond * 0.5, ControlType.kVelocity);
             turnController.setSetpoint(desiredState.angle.getRadians(), ControlType.kPosition);
 
         }
