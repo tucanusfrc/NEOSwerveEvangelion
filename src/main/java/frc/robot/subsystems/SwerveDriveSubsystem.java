@@ -13,6 +13,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -25,30 +26,58 @@ import frc.robot.Constants.SwerveConstants;;
 public class SwerveDriveSubsystem extends SubsystemBase{
 
     private final SwerveModule frontLeftModule = new SwerveModule(
-        SwerveConstants.FL_SPEED_ID, SwerveConstants.FL_TURN_ID, SwerveConstants.FL_TURN_ID, true);
+        SwerveConstants.FL_SPEED_ID, SwerveConstants.FL_TURN_ID, SwerveConstants.FL_TURN_ID, false);
     
     private final SwerveModule frontRightModule = new SwerveModule(
     SwerveConstants.FR_SPEED_ID, SwerveConstants.FR_TURN_ID, SwerveConstants.FR_TURN_ID, true);
 
     private final SwerveModule backLeftModule = new SwerveModule(
-    SwerveConstants.BR_SPEED_ID, SwerveConstants.BR_TURN_ID, SwerveConstants.BR_TURN_ID, true);
+    SwerveConstants.BR_SPEED_ID, SwerveConstants.BR_TURN_ID, SwerveConstants.BR_TURN_ID, false);
 
     private final SwerveModule backRightModule = new SwerveModule(
-    SwerveConstants.BL_SPEED_ID, SwerveConstants.BL_TURN_ID, SwerveConstants.BL_TURN_ID, false);
-
+        SwerveConstants.BL_SPEED_ID, SwerveConstants.BL_TURN_ID, SwerveConstants.BL_TURN_ID, false);
+        
     public final Pigeon2 gyro = new Pigeon2(SwerveConstants.PIGEON2_ID);
     public final SwerveDriveOdometry odometry;
     
-   public SwerveDriveSubsystem(){
+    public SwerveDriveSubsystem(){
         resetField();
         odometry = new SwerveDriveOdometry(
             SwerveConstants.KINEMATICS, getRotation2d(), getModulePositions());
     }
-
+        
+    public void drive(double xspeed, double yspeed, double rotation){
+        ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+            xspeed, yspeed, rotation, getRotation2d());
+            
+        speeds = ChassisSpeeds.discretize(speeds, 0.02);
+        
+        driveRobotRelative(speeds);
+    }
+    
+    public void driveRobotRelative(ChassisSpeeds robotRelativeSpeeds){
+        ChassisSpeeds targetSpeeds = ChassisSpeeds.discretize(robotRelativeSpeeds, 0.02);
+        
+        SwerveModuleState[] targetStates = SwerveConstants.KINEMATICS.toSwerveModuleStates(targetSpeeds);
+        
+        SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, SwerveConstants.MAX_SPEED_METERS_PER_SECOND);
+        
+        frontLeftModule.setDesireState(targetStates[0]);
+        frontRightModule.setDesireState(targetStates[1]);
+        backRightModule.setDesireState(targetStates[2]);
+        backLeftModule.setDesireState(targetStates[3]);
+        
+    }
+    
     public void resetField(){
         gyro.setYaw(0);
     }
-
+    
+    public void resetPose(Pose2d pose){
+        System.out.println(pose);
+        odometry.resetPosition(getRotation2d(), getModulePositions(), pose);
+    }
+    
     public Rotation2d getRotation2d(){
         return gyro.getRotation2d();
     }
@@ -59,29 +88,29 @@ public class SwerveDriveSubsystem extends SubsystemBase{
             backRightModule.getPosition(), backLeftModule.getPosition()
         };
     }
-
-    public void drive(double xspeed, double yspeed, double rotation){
-        ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-            xspeed, yspeed, rotation, getRotation2d());
-
-        speeds = ChassisSpeeds.discretize(speeds, 0.02);
-
-        SwerveModuleState[] states = SwerveConstants.KINEMATICS.toSwerveModuleStates(speeds);
-
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, SwerveConstants.MAX_SPEED_METERS_PER_SECOND);
-
-        frontLeftModule.setDesireState(states[0]);
-        frontRightModule.setDesireState(states[1]);
-        backRightModule.setDesireState(states[2]);
-        backLeftModule.setDesireState(states[3]);
+    
+    public SwerveModuleState[] getModuleState(){
+        return new SwerveModuleState[]{
+            frontLeftModule.getState(), frontRightModule.getState(),
+            backRightModule.getState(), backLeftModule.getState()
+        };
     }
 
+    public Pose2d getPose(){
+        return odometry.getPoseMeters();
+    }
+
+    public ChassisSpeeds getRobotRelativeSpeeds(){
+        return SwerveConstants.KINEMATICS.toChassisSpeeds(getModuleState());
+    }
+
+    
+    
     @Override
     public void periodic(){
         odometry.update(getRotation2d(), getModulePositions());
     }
-
-
+    
     private class SwerveModule{
 
         private final SparkMax m_speed;
