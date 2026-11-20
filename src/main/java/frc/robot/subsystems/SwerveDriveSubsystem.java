@@ -2,6 +2,10 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
@@ -20,6 +24,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SwerveConstants;;
 
@@ -44,6 +49,34 @@ public class SwerveDriveSubsystem extends SubsystemBase{
         resetField();
         odometry = new SwerveDriveOdometry(
             SwerveConstants.KINEMATICS, getRotation2d(), getModulePositions());
+
+        RobotConfig config;
+        try{
+            config = RobotConfig.fromGUISettings();
+        } catch(Exception e){
+            config = null;
+            e.printStackTrace();
+        }
+        
+        AutoBuilder.configure(
+            this::getPose,
+            this::resetPose,
+            this::getRobotRelativeSpeeds,
+            (speeds, feedforwards) -> driveRobotRelative(speeds),
+            new PPHolonomicDriveController(
+                new PIDConstants(5.0, 0, 0),
+                new PIDConstants(5.0, 0, 0)
+            ),
+            config,
+            () -> {
+                var alliance = DriverStation.getAlliance();
+                if (alliance.isPresent()){
+                    return alliance.get() == DriverStation.Alliance.Red;
+                }
+                return false;
+            },
+            this
+        );
     }
         
     public void drive(double xspeed, double yspeed, double rotation){
@@ -77,7 +110,7 @@ public class SwerveDriveSubsystem extends SubsystemBase{
         System.out.println(pose);
         odometry.resetPosition(getRotation2d(), getModulePositions(), pose);
     }
-    
+
     public Rotation2d getRotation2d(){
         return gyro.getRotation2d();
     }
@@ -104,8 +137,6 @@ public class SwerveDriveSubsystem extends SubsystemBase{
         return SwerveConstants.KINEMATICS.toChassisSpeeds(getModuleState());
     }
 
-    
-    
     @Override
     public void periodic(){
         odometry.update(getRotation2d(), getModulePositions());
