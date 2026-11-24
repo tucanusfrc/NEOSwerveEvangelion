@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -14,10 +15,16 @@ import frc.robot.subsystems.SwerveDriveSubsystem;
 
 public class RobotContainer {
 
+  private SendableChooser<Command> autoChooser = 
+    new SendableChooser<>();
+
   private final SwerveDriveSubsystem swerve = new SwerveDriveSubsystem();
   private final CommandXboxController controll = new CommandXboxController(0);
 
   public RobotContainer() {
+
+
+
     swerve.setDefaultCommand(
       new RunCommand(() -> {
         double xSpeed = MathUtil.applyDeadband(controll.getLeftY(), 0.1) * SwerveConstants.MAX_SPEED_METERS_PER_SECOND;
@@ -31,6 +38,19 @@ public class RobotContainer {
   }
 
   private void configureBindings() {}
+
+  private void configureAuto(){
+
+    autoChooser.setDefaultOption(
+      "default",
+      getAutonomousCommand()
+    );
+
+    autoChooser.addOption(
+      "auto1", null
+      );
+
+  }
 
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");
