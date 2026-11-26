@@ -34,14 +34,14 @@ public class SwerveDriveSubsystem extends SubsystemBase{
         SwerveConstants.FL_SPEED_ID, SwerveConstants.FL_TURN_ID, SwerveConstants.FL_TURN_ID, false);
     
     private final SwerveModule frontRightModule = new SwerveModule(
-    SwerveConstants.FR_SPEED_ID, SwerveConstants.FR_TURN_ID, SwerveConstants.FR_TURN_ID, true);
+    SwerveConstants.FR_SPEED_ID, SwerveConstants.FR_TURN_ID, SwerveConstants.FR_TURN_ID, false);
 
     private final SwerveModule backLeftModule = new SwerveModule(
-    SwerveConstants.BR_SPEED_ID, SwerveConstants.BR_TURN_ID, SwerveConstants.BR_TURN_ID, false);
+    SwerveConstants.BR_SPEED_ID, SwerveConstants.BR_TURN_ID, SwerveConstants.BR_TURN_ID, true);
 
     private final SwerveModule backRightModule = new SwerveModule(
         SwerveConstants.BL_SPEED_ID, SwerveConstants.BL_TURN_ID, SwerveConstants.BL_TURN_ID, false);
-        
+    
     public final Pigeon2 gyro = new Pigeon2(SwerveConstants.PIGEON2_ID);
     public final SwerveDriveOdometry odometry;
     
@@ -56,6 +56,7 @@ public class SwerveDriveSubsystem extends SubsystemBase{
         } catch(Exception e){
             config = null;
             e.printStackTrace();
+            System.out.println("n foi");
         }
         
         AutoBuilder.configure(
